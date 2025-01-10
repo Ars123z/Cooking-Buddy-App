@@ -19,14 +19,12 @@ interface CookingBuddyApiService {
     suspend fun getRecipes(@Query("q") query: String): ApiResponse
     @GET("api/v1/video/ingredient-method/{id}")
     suspend fun getRecipeDetails(@Path("id") id: String): RecipeDetail
-    @POST("social/google/")
-    suspend fun getUserCredentials(@Body request: GoogleLoginRequest): UserDetails
     @GET("api/v1/history/")
-    suspend fun fetchHistory(@Header("Authorization") token: String?): List<History>
+    suspend fun fetchHistory(): List<History>
     @GET("api/v1/playlists/")
-    suspend fun fetchPlaylist(@Header("Authorization") token: String?): List<Playlist>
+    suspend fun fetchPlaylist(): List<Playlist>
     @POST("api/v1/playlists/")
-    suspend fun createPlaylist(@Header("Authorization") token: String?, @Body request: CreatePlaylistRequest): Playlist
+    suspend fun createPlaylist(@Body request: CreatePlaylistRequest): Playlist
     @GET("api/v1/playlists/{id}")
-    suspend fun getPlaylist(@Header("Authorization") token: String?, @Path("id") id: Int): Playlist
+    suspend fun getPlaylist(@Path("id") id: Int): Playlist
 }

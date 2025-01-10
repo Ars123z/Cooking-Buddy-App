@@ -256,8 +256,10 @@ fun SignInWithGoogleButton(
                     context = context,
                 )
                 val credential = result.credential
+                Log.i(TAG, credential.toString())
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 val googleIdToken = googleIdTokenCredential.idToken
+                Log.i(TAG, googleIdToken.toString())
                 val request: GoogleLoginRequest = GoogleLoginRequest(access_token = googleIdToken)
 
                 authViewModel.getUserData(request).collect { userDetails ->

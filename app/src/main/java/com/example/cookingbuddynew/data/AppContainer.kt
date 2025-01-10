@@ -18,12 +18,16 @@ import retrofit2.Retrofit
 
 interface AppContainer {
     val authRepository: AuthRepository
+    val historyRepository: HistoryRepository
+    val playlistRepository: PlaylistRepository
+    val searchRepository: SearchRepository
+    val videoRepository: VideoRepository
 }
 
 val loginFlow = AppSessionManager.loginFlow
 
 class DefaultAppContainer(context: Context) : AppContainer {
-    private val BASE_URL = "http://192.168.1.4:8000/"
+    private val BASE_URL = "http://192.168.1.15:8000/"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(DataStoreManager(context), loginFlow)) // Add your custom interceptor here
@@ -40,11 +44,25 @@ class DefaultAppContainer(context: Context) : AppContainer {
     private val authRetrofitService: AuthApiService by lazy {
         retrofit.create(AuthApiService::class.java)
     }
-    private val cookingBuddyRetrofitService: CookingBuddyApiService by lazy {
-        retrofit.create(CookingBuddyApiService::class.java)
-    }
 
     override val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(authRetrofitService)
+    }
+
+//    ========================================
+    private val cookingBuddyRetrofitService: CookingBuddyApiService by lazy {
+        retrofit.create(CookingBuddyApiService::class.java)
+    }
+    override val historyRepository: HistoryRepository by lazy {
+        HistoryRepositoryImpl(cookingBuddyRetrofitService)
+    }
+    override val playlistRepository: PlaylistRepository by lazy {
+        PlaylistRepositoryImpl(cookingBuddyRetrofitService)
+    }
+    override val searchRepository: SearchRepository by lazy {
+        SearchRepositoryImp(cookingBuddyRetrofitService)
+    }
+    override val videoRepository: VideoRepository by lazy {
+        VideoRepositoryImpl(cookingBuddyRetrofitService)
     }
 }

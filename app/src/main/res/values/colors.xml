@@ -11,4 +11,5 @@
     <color name="primary">#FFFFE500</color>
     <color name="background">#FF1E1E1E</color>
     <color name="card_background">#1F1F1F</color>
+    <color name="gradient_start">#FFFFE500</color>
 </resources>

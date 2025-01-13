@@ -22,12 +22,14 @@ interface AppContainer {
     val playlistRepository: PlaylistRepository
     val searchRepository: SearchRepository
     val videoRepository: VideoRepository
+    val profileRepository: ProfileRepository
 }
 
 val loginFlow = AppSessionManager.loginFlow
 
 class DefaultAppContainer(context: Context) : AppContainer {
-    private val BASE_URL = "http://192.168.1.15:8000/"
+    private val BASE_URL = "https://cooking-buddy-backend-production.up.railway.app/"
+//    private val BASE_URL = "http://192.168.1.15:8000"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(DataStoreManager(context), loginFlow)) // Add your custom interceptor here
@@ -62,7 +64,13 @@ class DefaultAppContainer(context: Context) : AppContainer {
     override val searchRepository: SearchRepository by lazy {
         SearchRepositoryImp(cookingBuddyRetrofitService)
     }
+//    override val searchRepository: SearchRepository by lazy {
+//        MockRepository()
+//    }
     override val videoRepository: VideoRepository by lazy {
         VideoRepositoryImpl(cookingBuddyRetrofitService)
+    }
+    override val profileRepository: ProfileRepository by lazy {
+        ProfileRepositoryImpl(cookingBuddyRetrofitService)
     }
 }

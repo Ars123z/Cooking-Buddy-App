@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">cookingBuddyNew</string>
+    <string name="app_name">CookingBuddy</string>
+    <string name="screen_title">Cooking Buddy</string>
+    <string name="loading_failed">Loading Failed</string>
+    <string name="loading">loading…</string>
+    <!--    Route names-->
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+    <string name="history">History</string>
+    <string name="profile">Profile</string>
+    <string name="playlist">Playlist</string>
+    <string name="video">Video</string>
 </resources>

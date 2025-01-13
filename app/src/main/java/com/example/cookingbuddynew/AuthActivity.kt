@@ -221,6 +221,8 @@ fun ResetPasswordScreen(navigateToLogin: ()-> Unit, uuid: String) {
 Text(text= "ResetPassword")
     Text(text = uuid)
 }
+
+
 @Composable
 fun SignInWithGoogleButton(
     dataStoreManager: DataStoreManager,
@@ -264,11 +266,13 @@ fun SignInWithGoogleButton(
 
                 authViewModel.getUserData(request).collect { userDetails ->
                     user = userDetails
-                    user.access_token_expiry = System.currentTimeMillis() + 2000
+                    user.access_token_expiry = System.currentTimeMillis() + 24 * 60 * 60 * 1000
                     user.refresh_token_expiry = System.currentTimeMillis() + 604800000
                     dataStoreManager.saveToDataStore(user)
                 }
                 Toast.makeText(context, "you are signed in as ${user?.full_name}", Toast.LENGTH_SHORT).show()
+                val intent = Intent(context, MainActivity::class.java)
+                context.startActivity(intent)
             }
             catch (e: GetCredentialException) {
                 Log.i(TAG, e.message.toString())

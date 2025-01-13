@@ -1,5 +1,6 @@
 package com.example.cookingbuddynew.network
 
+import android.util.Log
 import com.example.cookingbuddynew.api.RefreshRequest
 import com.example.cookingbuddynew.utils.DataStoreManager
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -12,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Response
 import retrofit2.Retrofit
 
+val TAG = "NetworkService"
 class AuthInterceptor(
     private val tokenProvider: DataStoreManager,
     private val loginFlow: MutableSharedFlow<Unit> // SharedFlow to notify about redirection
@@ -19,6 +21,7 @@ class AuthInterceptor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
+        Log.i(TAG, "Request URL: ${originalRequest.url}")
 
         // Assume credentials are never empty and only need to handle staleness
         val token = runBlocking { tokenProvider.getFromDataStore().first() }
@@ -52,7 +55,7 @@ class AuthInterceptor(
             loginFlow.tryEmit(Unit)
             originalRequest
         }
-
+Log.i(TAG, "Modified Request URL: ${modifiedRequest.url}")
         // Proceed with the modified request
         val response = chain.proceed(modifiedRequest)
 
@@ -63,7 +66,7 @@ class AuthInterceptor(
             }
             loginFlow.tryEmit(Unit) // Notify the app to redirect to login
         }
-
+Log.i(TAG, "Response Code: ${response.code}")
         return response
     }
 

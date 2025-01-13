@@ -8,6 +8,8 @@ interface PlaylistRepository {
     suspend fun fetchPlaylist(): List<Playlist>
     suspend fun getPlaylist(id: Int): Playlist
     suspend fun createPlaylist(request: CreatePlaylistRequest): Playlist
+    suspend fun deletePlaylist(id: Int): Unit
+    suspend fun updatePlaylist(id: Int): Unit
 }
 
 class PlaylistRepositoryImpl(private val playlistService: CookingBuddyApiService) : PlaylistRepository {
@@ -19,5 +21,11 @@ class PlaylistRepositoryImpl(private val playlistService: CookingBuddyApiService
     }
     override suspend fun createPlaylist(request: CreatePlaylistRequest): Playlist {
         return playlistService.createPlaylist(request)
+    }
+    override suspend fun deletePlaylist(id: Int): Unit {
+//        return playlistService.deletePlaylist(id)
+    }
+    override suspend fun updatePlaylist(id: Int): Unit {
+//        return playlistService.updatePlaylist(id)
     }
 }

@@ -20,7 +20,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.CookingBuddyNew">
+            android:theme="@style/Theme.CookingBuddyNew"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard">
         </activity>
         <activity
             android:name=".AuthActivity"
@@ -36,7 +37,7 @@
         <activity
             android:name=".SplashScreenActivity"
             android:exported="true"
-            android:theme="@style/Theme.CookingBuddyNew">
+            android:theme="@style/Theme.SplashScreen.MySplash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

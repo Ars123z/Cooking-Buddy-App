@@ -2,8 +2,12 @@ package com.example.cookingbuddynew.network
 
 
 import com.example.cookingbuddynew.api.GoogleLoginRequest
+import com.example.cookingbuddynew.api.LoginRequest
+import com.example.cookingbuddynew.api.LoginResponse
 import com.example.cookingbuddynew.api.RefreshRequest
 import com.example.cookingbuddynew.api.RefreshResult
+import com.example.cookingbuddynew.api.RegisterRequest
+import com.example.cookingbuddynew.api.RegisterResponse
 import com.example.cookingbuddynew.api.UserDetails
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -13,10 +17,10 @@ interface AuthApiService {
     suspend fun googleLogin(@Body request: GoogleLoginRequest): UserDetails
 
     @POST("accounts/register/")
-    suspend fun register(@Body request: GoogleLoginRequest): UserDetails
+    suspend fun register(@Body request: RegisterRequest): RegisterResponse
 
     @POST("accounts/login/")
-    suspend fun login(@Body request: GoogleLoginRequest): UserDetails
+    suspend fun login(@Body request: LoginRequest): LoginResponse
 
     @POST("accounts/verify-email/")
     suspend fun verifyEmail(@Body request: RefreshRequest): RefreshResult

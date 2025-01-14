@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +25,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -39,10 +50,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,8 +65,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CreatePasswordRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetPasswordOption
+import androidx.credentials.PasswordCredential
+import androidx.credentials.exceptions.CreateCredentialCancellationException
+import androidx.credentials.exceptions.CreateCredentialException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NamedNavArgument
@@ -62,14 +81,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.cookingbuddynew.api.GoogleLoginRequest
+import com.example.cookingbuddynew.api.LoginRequest
+import com.example.cookingbuddynew.api.RegisterRequest
 import com.example.cookingbuddynew.api.UserDetails
 import com.example.cookingbuddynew.ui.theme.CookingBuddyNewTheme
 import com.example.cookingbuddynew.utils.DataStoreManager
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+const val REGISTER_ROUTE = "register"
+const val LOGIN_ROUTE = "login"
+const val FORGET_PASSWORD_ROUTE = "reset_password"
+const val REGISTER_OTP_ROUTE = "register_otp"
+const val FORGET_PASSWORD_OTP_ROUTE = "forget_password_otp"
 
 class AuthActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,24 +105,6 @@ class AuthActivity: ComponentActivity() {
         setContent {
             CookingBuddyNewTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    val navController = rememberNavController()
-//                  Handle Deep Links
-                    val deepLinkData = intent.data
-                    val startDestination = if (
-                        deepLinkData != null &&
-                        deepLinkData.scheme == "https" &&
-                        deepLinkData.host == "www.example.com"
-                    ) {
-                        val uuid = deepLinkData.getQueryParameter("uuid")
-                        if (uuid != null) {
-                            "reset-password/$uuid"
-                        } else {
-                            "login"
-                        }
-                    } else {
-                        "login"
-                    }
-
                     val dataStoreContext = LocalContext.current
                     val dataStoreManager = DataStoreManager(dataStoreContext)
                     val changeActivity = {
@@ -103,17 +112,39 @@ class AuthActivity: ComponentActivity() {
                         startActivity(intent)
                         finish()
                     }
+                    val navController = rememberNavController()
                     // Navigation Setup
-                    NavHost(navController = navController, startDestination = startDestination) {
-                        composable("login") { SignInScreen() }
-                        composable(
-                            "resetPassword/{uuid}",
-                            arguments = listOf(navArgument("uuid") { type = NavType.StringType })
-                        ) { backStackEntry ->
-                            val uuid = backStackEntry.arguments?.getString("uuid")
-                            if (uuid != null) {
-                                ResetPasswordScreen({navController.navigate("login")}, uuid)
-                            }
+                    NavHost(
+                        navController = navController,
+                        startDestination = REGISTER_ROUTE,
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable(REGISTER_ROUTE) {
+                            RegisterScreen(
+                                goToSignIn = { navController.navigate(LOGIN_ROUTE) },
+                                goToRegisterOTP = { navController.navigate(REGISTER_OTP_ROUTE) }
+                            )
+                        }
+                        composable(LOGIN_ROUTE) {
+                            SignInScreen(
+                                goToRegister = { navController.navigate(REGISTER_ROUTE) },
+                                goToForgetPassword = { navController.navigate(FORGET_PASSWORD_ROUTE) },
+                            )
+                        }
+                        composable(FORGET_PASSWORD_ROUTE) {
+                            ForgetPasswordScreen(
+                                goToForgetPasswordOTP = { navController.navigate(FORGET_PASSWORD_OTP_ROUTE) }
+                            )
+                        }
+                        composable(REGISTER_OTP_ROUTE) {
+                            RegisterOtpScreen(
+                                goToSignIn = { navController.navigate(LOGIN_ROUTE) }
+                            )
+                        }
+                        composable(FORGET_PASSWORD_OTP_ROUTE) {
+                            ForgetPasswordOtpScreen(
+                                goToSignIn = { navController.navigate(LOGIN_ROUTE) }
+                            )
                         }
                     }
                 }
@@ -124,16 +155,64 @@ class AuthActivity: ComponentActivity() {
 
 @Composable
 fun SignInScreen(
-    modifier: Modifier = Modifier,
-    onSignInClick: (String, String) -> Unit = { _, _ -> },
-//    onGoogleSignInClick: () -> Unit = {}
+    goToRegister: () -> Unit,
+    goToForgetPassword: () -> Unit,
+    dataStoreManager: DataStoreManager = DataStoreManager(LocalContext.current),
+    modifier: Modifier = Modifier.background(MaterialTheme.colorScheme.background),
+    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory),
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = CredentialManager.create(context)
+    val onSignIn: () -> Unit = {
+        try {
+            coroutineScope.launch {
+                val credentialResponse = credentialManager.getCredential(
+                    context = context,
+                    request = GetCredentialRequest(
+                        credentialOptions = listOf(GetPasswordOption())
+                    )
+                )
+                val credential = credentialResponse.credential as? PasswordCredential
+                val password = credential?.password ?: ""
+                val id = credential?.id ?: ""
+                val user = authViewModel.login(LoginRequest(id, password))
+                Log.d("user", user.access_token)
+                Log.d("user", user.refresh_token)
+                Log.d("user", user.email)
+                Log.d("user", user.full_name)
+                val userDetails = UserDetails(
+                    email = user.email,
+                    full_name = user.full_name,
+                    picture = "",
+                    access_token = user.access_token,
+                    refresh_token = user.refresh_token,
+                    access_token_expiry = System.currentTimeMillis() + 24 * 60 * 60 * 1000,
+                    refresh_token_expiry = System.currentTimeMillis() + 604800000
+                )
+                dataStoreManager.saveToDataStore(userDetails)
+                Toast.makeText(context, "you are signed in as ${user?.full_name}", Toast.LENGTH_SHORT).show()
+                val intent = Intent(context, MainActivity::class.java)
+                context.startActivity(intent)
+            }
+            Toast.makeText(context, "Account created successfully", Toast.LENGTH_SHORT).show()
+        }  catch (e: CreateCredentialCancellationException) {
+            e.printStackTrace()
+        } catch(e: CreateCredentialException) {
+            e.printStackTrace()
+        }
+    }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    val focusManager = LocalFocusManager.current
+    val emailFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -143,85 +222,271 @@ fun SignInScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Sign In", style = MaterialTheme.typography.headlineMedium)
-
+            Text(text = "Cooking Buddy", style = MaterialTheme.typography.headlineMedium)
+            Text(text = "Sign In", style = MaterialTheme.typography.titleLarge)
             // Email Input
-            BasicTextField(
+            OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
+                label = { Text("Email") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.primary)
-                    .padding(16.dp),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                decorationBox = { innerTextField ->
-                    if (email.isEmpty()) {
-                        Text("Email")
+                    .focusRequester(emailFocusRequester),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        passwordFocusRequester.requestFocus()
                     }
-                    innerTextField()
-                }
+                )
             )
 
             // Password Input
-            BasicTextField(
+            OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
+                label = { Text("Password") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.primary)
-                    .padding(16.dp),
+                    .focusRequester(passwordFocusRequester),
                 singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                decorationBox = { innerTextField ->
-                    if (password.isEmpty()) {
-                        Text("Password")
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        onSignIn()
                     }
-                    innerTextField()
+                ),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide Password" else "Show Password"
+                        )
+                    }
                 }
             )
-
-            // Toggle Password Visibility
-            TextButton(onClick = { passwordVisible = !passwordVisible }) {
-                Text(text = if (passwordVisible) "Hide Password" else "Show Password")
+            TextButton(
+                onClick = goToForgetPassword,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(text = "Forgot Password?")
             }
-
             // Sign In Button
             Button(
-                onClick = { onSignInClick(email, password) },
+                onClick = {
+                    focusManager.clearFocus()
+                    onSignIn()
+                          },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Sign In")
             }
 
             // Sign In with Google Button
-//            OutlinedButton(
-//                onClick = { onGoogleSignInClick() },
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                Text(text = "Sign In with Google")
-//            }
             SignInWithGoogleButton(
                 dataStoreManager = DataStoreManager(LocalContext.current)
             )
+            Button(
+                onClick = goToRegister,
+            ) {
+                Text(text = "Register")
+            }
         }
     }
 }
 
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(
+    goToRegisterOTP: () -> Unit,
+    goToSignIn: ()-> Unit,
+    authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.Factory),
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = CredentialManager.create(context)
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var password2 by remember { mutableStateOf("") }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+
+    val focusManager = LocalFocusManager.current
+    val passwordFocusRequester = remember { FocusRequester() }
+    val password2FocusRequester = remember { FocusRequester() }
+    val emailFocusRequester = remember { FocusRequester() }
+    val firstNameFocusRequester = remember { FocusRequester() }
+    val lastNameFocusRequester = remember { FocusRequester() }
+    val onSignUp: (RegisterRequest) -> Unit = { request ->
+        try {
+            coroutineScope.launch {
+                credentialManager.createCredential(
+                    context = context,
+                    request = CreatePasswordRequest(
+                        id = request.email,
+                        password = request.password
+                    )
+                )
+                authViewModel.register(request)
+                Toast.makeText(context, "Account created successfully", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: CreateCredentialCancellationException) {
+            e.printStackTrace()
+        } catch(e: CreateCredentialException) {
+            e.printStackTrace()
+        }
+    }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Cooking Buddy", style = MaterialTheme.typography.headlineMedium)
+            Text(text = "Register", style = MaterialTheme.typography.titleLarge)
+            // Email Input
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .focusRequester(emailFocusRequester),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        passwordFocusRequester.requestFocus()
+                    }
+                )
+            )
+
+            // Password Input
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .focusRequester(passwordFocusRequester),
+                singleLine = true,
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        password2FocusRequester.requestFocus()
+                    }
+                ),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide Password" else "Show Password"
+                        )
+                    }
+                }
+            )
+
+            OutlinedTextField(
+                value = password2,
+                onValueChange = { password2 = it },
+                label = { Text("Password2") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .focusRequester(emailFocusRequester),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        firstNameFocusRequester.requestFocus()
+                    }
+                )
+            )
+
+            OutlinedTextField(
+                value = firstName,
+                onValueChange = { firstName = it },
+                label = { Text("First Name") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .focusRequester(lastNameFocusRequester),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        onSignUp(RegisterRequest(email, password, firstName, lastName, password2))
+                    }
+                )
+            )
+
+            OutlinedTextField(
+                value = lastName,
+                onValueChange = { lastName = it },
+                label = { Text("Last Name") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .focusRequester(lastNameFocusRequester),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        onSignUp(RegisterRequest(email, password, firstName, lastName, password2))
+                        goToRegisterOTP()
+                    }
+                )
+            )
+
+            // Sign In Button
+            Button(
+                onClick = {
+                    focusManager.clearFocus()
+                    onSignUp(RegisterRequest(email, password, firstName, lastName, password2))
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Register")
+            }
+
+            // Sign In with Google Button
+            SignInWithGoogleButton(
+                dataStoreManager = DataStoreManager(LocalContext.current)
+            )
+            Button(
+                onClick = goToSignIn,
+            ) {
+                Text(text = "Sign In")
+            }
+        }
+    }
 
 }
 
 @Composable
-fun ResetPasswordScreen(navigateToLogin: ()-> Unit, uuid: String) {
-Text(text= "ResetPassword")
-    Text(text = uuid)
+fun RegisterOtpScreen(
+    goToSignIn: () -> Unit,
+) {
+    Text(text = "RegisterOtp")
+    var otp by remember { mutableStateOf("") }
+    OutlinedTextField(
+        value = "",
+        onValueChange = {otp = it},
+        label = { Text("OTP") },
+    )
 }
-
 
 @Composable
 fun SignInWithGoogleButton(
@@ -282,225 +547,55 @@ fun SignInWithGoogleButton(
         }
     }
 
-    Button(
+    OutlinedButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
     ) {
-        Text(text = "Sign in with Google")
-    }
-}
-
-@Composable
-fun AppContent(
-    dataStoreManager: DataStoreManager,
-    changeActivity: () -> Unit
-) {
-    var context = LocalContext.current
-    var isRegistered by remember {
-        mutableStateOf(false)
-    }
-    val scope = rememberCoroutineScope()
-    val onRegisterSuccess = { isRegistered = true }
-
-    //lets check if user is registered in when the app start
-    LaunchedEffect(key1 = Unit) {
-        checkRegisterState(dataStoreManager) { it ->
-            isRegistered = it
-        }
-    }
-
-    if (isRegistered) {
-        changeActivity()
-    } else {
-        RegisterPageUI(onRegisterSuccess, dataStoreManager)
-    }
-
-}
-
-suspend fun checkRegisterState(
-    dataStoreManager: DataStoreManager,
-    onResult: (Boolean) -> Unit
-) {
-    val preferences  = dataStoreManager.getFromDataStore().first()
-    val accessToken = preferences.access_token
-    val isRegistered = accessToken != ""
-    onResult(isRegistered)
-}
-
-@Composable
-fun RegisterPageUI(onRegisterSuccess: () -> Unit, dataStoreManager: DataStoreManager) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var mobileNumber by remember { mutableStateOf("") }
-    val mContext = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    // Create focus requesters for each TextField
-    val focusRequester1 = remember { FocusRequester() }
-    val focusRequester2 = remember { FocusRequester() }
-    val focusRequester3 = remember { FocusRequester() }
-    val focusRequester4= remember { FocusRequester() }
-
-    // Get the current focus manager
-    val focusManager = LocalFocusManager.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding()
-            .padding(16.dp)
-            .imePadding(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        // Main card Content for Register
-        ElevatedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()) // Add verticalScroll modifier here
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .padding(bottom = 8.dp)
-            ) {
-
-                // Heading Jetpack Compose
-                Text(
-                    modifier = Modifier
-                        .padding(top = 10.dp)
-                        .fillMaxWidth(),
-                    text = stringResource(id = R.string.app_name),
-                    textAlign = TextAlign.Center,
-                    fontSize = 30.sp
-
-                )
-
-                // Register Logo
-//                AsyncImage(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(128.dp)
-//                        .padding(top = 8.dp),
-//                    model = ImageRequest.Builder(LocalContext.current)
-//                        .data(data = R.drawable.android).crossfade(enable = true).scale(Scale.FILL)
-//                        .build(),
-//                    contentDescription = stringResource(id = R.string.app_name)
-//                )
-
-
-                Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp),
-                    text = "Register",
-                    fontSize = 25.sp
-                )
-
-                // Name Field
-                OutlinedTextField(
-                    value = name, // Add a variable for name
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Next // Set imeAction to Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = {
-                            focusRequester2.requestFocus() // Move to next TextField
-                        }
-                    ),
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester1)
-                )
-
-                OutlinedTextField(
-                    value = mobileNumber,
-                    onValueChange = { mobileNumber = it },
-                    label = { Text("Mobile Number") },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Next // Set imeAction to Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = {
-                            focusRequester3.requestFocus() // Move to next TextField
-                        }
-                    ),
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester2)
-                )
-
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Next // Set imeAction to Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = {
-                            focusRequester4.requestFocus() // Move to next TextField
-                        }
-                    ),
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth().focusRequester(focusRequester3)
-                )
-
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Done // Set imeAction to Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus() // Hide the keyboard
-                        }
-                    ),
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester4)
-                )
-                Button(
-                    onClick = {
-                        if (name.isEmpty()) {
-                            Toast.makeText(mContext, "Name is Empty", Toast.LENGTH_SHORT).show()
-                        } else if (mobileNumber.isEmpty()) {
-                            Toast.makeText(mContext, "Mobile No. is Empty", Toast.LENGTH_SHORT)
-                                .show()
-                        } else if (email.isEmpty()) {
-                            Toast.makeText(mContext, "Email is Empty", Toast.LENGTH_SHORT).show()
-                        } else if (password.isEmpty()) {
-                            Toast.makeText(mContext, "Password is Empty", Toast.LENGTH_SHORT).show()
-                        } else {
-                            //Submit you data
-                            scope.launch {
-                                dataStoreManager.saveToDataStore(
-                                    UserDetails(
-                                        email = email,
-                                        full_name = name,
-                                        picture = "",
-                                        access_token = "fghegegg",
-                                        refresh_token = "",
-                                        access_token_expiry = 0L,
-                                        refresh_token_expiry = 0L
-                                    )
-                                )
-                                onRegisterSuccess()
-                            }
-                        }
-
-                    }, modifier = Modifier.padding(16.dp)
-                ) {
-                    Text("Submit")
-                }
-            }
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_foreground), // Use the Google logo here
+                contentDescription = "Google Logo",
+                modifier = Modifier.size(24.dp) // Adjust the size as needed
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Sign in with Google")
         }
     }
 }
+
+@Composable
+fun ForgetPasswordScreen(
+    goToForgetPasswordOTP: () -> Unit,
+) {
+    Text(text= "ResetPassword")
+    var email by remember { mutableStateOf("") }
+    OutlinedTextField(
+        value = "",
+        onValueChange = {email = it},
+        label = { Text("Email") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                goToForgetPasswordOTP()
+            }
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+    )
+}
+
+@Composable
+fun ForgetPasswordOtpScreen(
+    goToSignIn: () -> Unit,
+) {
+    Text(text= "ResetPasswordOtp")
+    var otp by remember { mutableStateOf("") }
+    OutlinedTextField(
+        value = "",
+        onValueChange = {otp = it},
+    )
+}
+

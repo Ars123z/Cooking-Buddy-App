@@ -6,6 +6,10 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.cookingbuddynew.api.GoogleLoginRequest
+import com.example.cookingbuddynew.api.LoginRequest
+import com.example.cookingbuddynew.api.LoginResponse
+import com.example.cookingbuddynew.api.RegisterRequest
+import com.example.cookingbuddynew.api.RegisterResponse
 import com.example.cookingbuddynew.api.UserDetails
 import com.example.cookingbuddynew.data.AuthRepository
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +22,14 @@ class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
         val user = authRepository.getUserCredentials(request) // Network call
         emit(user)
     }.flowOn(Dispatchers.IO)
+
+    suspend fun register(request: RegisterRequest): RegisterResponse {
+        return authRepository.register(request)
+    }
+    suspend fun login(request: LoginRequest): LoginResponse {
+        return authRepository.login(request)
+    }
+
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

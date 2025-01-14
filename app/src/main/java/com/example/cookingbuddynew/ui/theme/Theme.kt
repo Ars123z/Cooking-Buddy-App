@@ -13,14 +13,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+    primary = splashScreenBackground,
     secondary = PurpleGrey80,
     tertiary = Pink80,
     background = Color(0xFF1E1E1E),
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
+    primary = splashScreenBackground,
     secondary = PurpleGrey40,
     tertiary = Pink40,
     background = splashScreenBackground,

@@ -136,16 +136,25 @@ fun ProfilePage(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically // Center items vertically
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(data = picture)
-                    .build(),
-                contentDescription = "Profile Picture",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(70.dp) // Set a fixed size for the image
-                    .clip(CircleShape) // Make the image circular
-            )
+            if (picture != "") {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(data = picture)
+                        .build(),
+                    contentDescription = "Profile Picture",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(70.dp) // Set a fixed size for the image
+                        .clip(CircleShape) // Make the image circular
+                )
+            } else {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(R.drawable.empty)
+                        .build(),
+                    contentDescription = "Profile Picture",
+                )
+            }
             Spacer(modifier = Modifier.size(16.dp))
             Text(
                 text = name,

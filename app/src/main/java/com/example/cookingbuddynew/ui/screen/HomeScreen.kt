@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -113,13 +115,12 @@ fun HomeScreen(
                     onClick = onProfileClick,
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.baseline_account_circle_24),
-                        contentDescription = null, // Add content description if needed
+                        imageVector = Icons.Filled.AccountCircle,
+                        contentDescription = "Profile Picture",
                         modifier = Modifier
-                            .size(48.dp) // Control the image siz
-                            .clip(shape = CircleShape)
-                            .background(color = Color.Black)
-                            .fillMaxSize(),
+                            .size(70.dp)
+                            .clip(CircleShape),
+                        tint = Color.Black
                     )
                 }
 //                Image(

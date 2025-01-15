@@ -104,7 +104,7 @@ class SplashScreenActivity : ComponentActivity() {
                             ) {
                                 Row() {
                                     Text(
-                                        text = "Cooking",
+                                        text = "Cook",
                                         style = TextStyle(
                                             fontFamily = FontFamily(
                                                 Font(
@@ -119,7 +119,7 @@ class SplashScreenActivity : ComponentActivity() {
                                         color = Color.Black
                                     )
                                     Text(
-                                        text = "Buddy",
+                                        text = "Verse",
                                         style = TextStyle(
                                             fontFamily = FontFamily(
                                                 Font(

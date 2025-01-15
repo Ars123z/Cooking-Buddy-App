@@ -1,5 +1,7 @@
 package com.example.cookingbuddynew
 
+import android.app.Activity
+import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.filled.Home
@@ -10,6 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NamedNavArgument
@@ -104,6 +108,7 @@ fun CookingBuddyApp(
     )
     val localLifecycleOwner = LocalLifecycleOwner.current
     var navigationAwareKey: Int by remember { mutableStateOf(0) }
+    val context = LocalContext.current as Activity
     NavHost(
         navController = navController,
         startDestination = CookingBuddyScreen.Home.route,
@@ -165,6 +170,11 @@ fun CookingBuddyApp(
             ProfileScreen(
                 seeAllHistory = {
                     navController.navigate(CookingBuddyScreen.History.route)
+                },
+                goToSignIn = {
+                    val intent = Intent(context, AuthActivity::class.java)
+                    context.startActivity(intent)
+                    context.finish()
                 },
                 seeAllPlaylist = {
                     navController.navigate(CookingBuddyScreen.Playlist.route)

@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,6 +22,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -28,6 +33,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,18 +61,19 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.cookingbuddynew.R
 import com.example.cookingbuddynew.api.CreatePlaylistRequest
 import com.example.cookingbuddynew.api.History
 import com.example.cookingbuddynew.api.Playlist
+import com.example.cookingbuddynew.api.Video
 import com.example.cookingbuddynew.utils.DataStoreManager
 import kotlinx.coroutines.launch
-import com.example.cookingbuddynew.R
-import com.example.cookingbuddynew.api.Video
 
 @Composable
 fun ProfileScreen(
     seeAllHistory: () -> Unit,
     seeAllPlaylist: () -> Unit,
+    goToSignIn: () -> Unit,
     onCardClick: (Video) -> Unit,
     profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
     modifier: Modifier = Modifier
@@ -85,7 +93,8 @@ fun ProfileScreen(
             profileViewModel,
             seeAllHistory,
             seeAllPlaylist,
-            onCardClick = onCardClick
+            onCardClick = onCardClick,
+            goToSignIn = goToSignIn,
         )
     }
 }
@@ -100,6 +109,7 @@ fun ProfilePage(
     seeAllHistory: () -> Unit,
     seeAllPlaylist: () -> Unit,
     onCardClick: (Video) -> Unit,
+    goToSignIn: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val name = name ?: "Loading..."
@@ -120,81 +130,92 @@ fun ProfilePage(
             }
         }
     }
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End // Align content to the end (right)
+    Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { contentPadding ->
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(contentPadding)
+                .padding(horizontal = 16.dp)
         ) {
-            LogOut(profileViewModel, dataStoreManager)
-        }
-        Spacer(modifier = Modifier.height(16.dp)) // Add some space between rows
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically // Center items vertically
-        ) {
-            if (picture != "") {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(data = picture)
-                        .build(),
-                    contentDescription = "Profile Picture",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(70.dp) // Set a fixed size for the image
-                        .clip(CircleShape) // Make the image circular
-                )
-            } else {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(R.drawable.empty)
-                        .build(),
-                    contentDescription = "Profile Picture",
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End // Align content to the end (right)
+            ) {
+                LogOut(
+                    profileViewModel,
+                    dataStoreManager,
+                    goToSignIn
                 )
             }
-            Spacer(modifier = Modifier.size(16.dp))
-            Text(
-                text = name,
-                modifier = Modifier.padding(start = 8.dp) // Add some padding between the image and the text
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp)) // Add some space between rows
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween // Distribute content evenly
-        ) {
-            if (history != null) {
-                HistorySlider(
-                    history,
-                    seeAllHistory,
-                    onCardClick = onCardClick
+            Spacer(modifier = Modifier.height(16.dp)) // Add some space between rows
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically // Center items vertically
+            ) {
+                if (picture != "") {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(data = picture)
+                            .build(),
+                        contentDescription = "Profile Picture",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(70.dp) // Set a fixed size for the image
+                            .clip(CircleShape) // Make the image circular
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.AccountCircle,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape),
+                        tint = Color.Gray
+                    )
+                }
+                Spacer(modifier = Modifier.size(16.dp))
+                Text(
+                    text = name,
+                    modifier = Modifier.padding(start = 8.dp) // Add some padding between the image and the text
                 )
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp)) // Add some space between rows
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween // Distribute content evenly
-        ) {
-            if (access_token != null && access_token != "") {
-                val createNewPlaylist: (request: CreatePlaylistRequest) -> Unit = {
-                    Log.i(ContentValues.TAG, it.toString())
-                    coroutineScope.launch {
-                        profileViewModel.createPlaylist(access_token, request = it)
-                        profileViewModel.fetchPlaylist(access_token).collect {
-                            playlist = it
-                            Log.i(ContentValues.TAG, playlist.toString())
+            Spacer(modifier = Modifier.height(16.dp)) // Add some space between rows
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween // Distribute content evenly
+            ) {
+                if (history != null) {
+                    HistorySlider(
+                        history,
+                        seeAllHistory,
+                        onCardClick = onCardClick
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp)) // Add some space between rows
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween // Distribute content evenly
+            ) {
+                if (access_token != null && access_token != "") {
+                    val createNewPlaylist: (request: CreatePlaylistRequest) -> Unit = {
+                        Log.i(ContentValues.TAG, it.toString())
+                        coroutineScope.launch {
+                            profileViewModel.createPlaylist(access_token, request = it)
+                            profileViewModel.fetchPlaylist(access_token).collect {
+                                playlist = it
+                                Log.i(ContentValues.TAG, playlist.toString())
+                            }
                         }
                     }
+                    PlaylistSlider(
+                        playlist,
+                        createNewPlaylist,
+                        seeAllPlaylist
+                    )
                 }
-                PlaylistSlider(
-                    playlist,
-                    createNewPlaylist,
-                    seeAllPlaylist
-                )
             }
         }
     }
@@ -224,7 +245,7 @@ fun HistorySlider(
             Spacer(modifier = Modifier.weight(1f))
             Button(
                 onClick = seeAllHistory,
-                modifier = Modifier.padding(end = 16.dp, bottom= 16.dp)
+                modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
             ) {
                 Text(text = "See All")
             }
@@ -238,7 +259,8 @@ fun HistorySlider(
                 items(history) { historyItem ->
                     HistoryItemCard(
                         historyItem,
-                        onCardClick = onCardClick)
+                        onCardClick = onCardClick
+                    )
                 }
             }
         } else {
@@ -319,14 +341,17 @@ fun PlaylistSlider(
             )
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
-                onClick = {showCreatePlaylistDialog = true},
-                modifier = Modifier.padding(end = 16.dp, bottom= 16.dp)
+                onClick = { showCreatePlaylistDialog = true },
+                modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
             ) {
-                Icon(painter = painterResource(id = R.drawable.baseline_add_24), contentDescription = "Add Playlist")
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_add_24),
+                    contentDescription = "Add Playlist"
+                )
             }
             Button(
                 onClick = seeAllPlaylist,
-                modifier = Modifier.padding(end = 16.dp, bottom= 16.dp)
+                modifier = Modifier.padding(end = 16.dp, bottom = 16.dp)
             ) {
                 Text(text = "See All")
             }
@@ -459,6 +484,7 @@ fun CreatePlaylistDialog(
 fun LogOut(
     profileViewModel: ProfileViewModel,
     dataStoreManager: DataStoreManager,
+    goToSignIn: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -471,6 +497,7 @@ fun LogOut(
                 credentialManager.clearCredentialState(request)
                 dataStoreManager.clearDataStore()
                 Toast.makeText(context, "you are signed out", Toast.LENGTH_SHORT).show()
+                goToSignIn()
             } catch (e: GetCredentialException) {
                 Log.i(ContentValues.TAG, e.message.toString())
                 Log.i(ContentValues.TAG, e.cause.toString())

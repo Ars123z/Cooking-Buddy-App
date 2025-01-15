@@ -44,8 +44,10 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-splashscreen:1.1.0-rc01")
-    implementation("androidx.compose.material:material-icons-extended:1.7.6")
+    implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.coil.svg)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

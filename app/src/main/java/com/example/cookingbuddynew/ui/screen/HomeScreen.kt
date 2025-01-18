@@ -2,20 +2,23 @@ package com.example.cookingbuddynew.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,20 +27,29 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,13 +68,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.cookingbuddynew.R
 import com.example.cookingbuddynew.data.ExploreData
 import com.example.cookingbuddynew.data.dataList
 import com.example.cookingbuddynew.ui.theme.lightRed
-import com.example.cookingbuddynew.ui.theme.yellowGradient
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -74,13 +87,13 @@ fun HomeScreen(
     var selectedTabIndex by remember { mutableStateOf(0) }
     Column(
         modifier = modifier
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         Column(
             modifier = modifier
                 .wrapContentSize()
-                .background(yellowGradient),
+                .background(Color(0xFFFFE500)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
@@ -123,15 +136,6 @@ fun HomeScreen(
                         tint = Color.Black
                     )
                 }
-//                Image(
-//                    painter = painterResource(id = R.drawable.baseline_account_circle_24),
-//                    contentDescription = null, // Add content description
-//                    modifier = Modifier
-//                        .size(48.dp) // Control the image siz
-//                        .clip(shape = CircleShape)
-//                        .background(color = Color.Black)
-//                        .fillMaxSize()
-//                )
             }
             Spacer(modifier = Modifier.height(16.dp)) // Add spacing between Row and
             OutlinedTextField(
@@ -175,65 +179,81 @@ fun HomeScreen(
                     focusedBorderColor = Color.Black,
                 )
             )
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically, // Vertically align items
-                modifier = Modifier
-                    .wrapContentSize() // Fill the width of the screen
-                    .padding(
-                        vertical = 0.dp,
-                        horizontal = 16.dp
-                    )
-                    .background(
-                        color = Color.Black,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-            ) {
-                TextButton(
-                    onClick = { selectedTabIndex = 0 },
-                    colors = ButtonDefaults.textButtonColors(
-                        containerColor = if (selectedTabIndex == 0) lightRed else Color.Black,
-                        contentColor = if (selectedTabIndex == 0) Color.Yellow else Color.White
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                ) {
-                    Text(
-                        text = "Recommended",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                }
-                TextButton(
-                    onClick = { selectedTabIndex = 1 },
-                    colors = ButtonDefaults.textButtonColors(
-                        containerColor = if (selectedTabIndex == 1) lightRed else Color.Black,
-                        contentColor = if (selectedTabIndex == 1) Color.Yellow else Color.White
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.baseline_bookmark_24),
-                        contentDescription = null, // Add content description if needed
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Text(
-                        text = "Collections",
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                }
-            }
-            Spacer(
-                modifier = Modifier.height(25.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        Spacer(
+            modifier = Modifier.height(25.dp)
+        )
+        Row(
+            modifier = Modifier.padding(horizontal = 40.dp),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            TabButtons(
+                selectedTabIndex = selectedTabIndex,
+                changeTabIndex = {selectedTabIndex = it}
             )
         }
         TabContent(selectedTabIndex)
         Spacer(
-            modifier = Modifier.height(50.dp)
+            modifier = Modifier.height(20.dp)
         )
-        Explore()
+        Explore(
+            onCardClick = onSearch,
+        )
+    }
+}
+
+@Composable
+fun TabButtons(
+    selectedTabIndex: Int,
+    changeTabIndex: (Int) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically, // Vertically align items
+        modifier = Modifier
+            .wrapContentSize() // Fill the width of the screen
+            .padding(
+                vertical = 0.dp,
+                horizontal = 16.dp
+            )
+            .background(
+                color = Color.Black,
+                shape = RoundedCornerShape(16.dp)
+            )
+    ) {
+        TextButton(
+            onClick = {changeTabIndex(0)},
+            colors = ButtonDefaults.textButtonColors(
+                containerColor = if (selectedTabIndex == 0) lightRed else Color.Black,
+                contentColor = if (selectedTabIndex == 0) Color.Yellow else Color.White
+            ),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Text(
+                text = "Recommended",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(vertical = 6.dp)
+            )
+        }
+        TextButton(
+            onClick = { changeTabIndex(1) },
+            colors = ButtonDefaults.textButtonColors(
+                containerColor = if (selectedTabIndex == 1) lightRed else Color.Black,
+                contentColor = if (selectedTabIndex == 1) Color.Yellow else Color.White
+            ),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.baseline_bookmark_24),
+                contentDescription = null, // Add content description if needed
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = "Collections",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(vertical = 6.dp)
+            )
+        }
     }
 }
 
@@ -256,15 +276,19 @@ fun RecommendedTab() {
     ) {
         items(5) { index ->
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy((-5).dp),
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.rectangle),
                     contentDescription = null,
                     modifier = Modifier.size(150.dp)
                 )
-                Text("Cheese Burger")
+                Text(
+                    text = "Cheese Burger",
+                    lineHeight = 20.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
             }
         }
     }
@@ -287,15 +311,17 @@ fun CollectionsTab() {
 
 @Composable
 fun Explore(
+    onCardClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Text(
         text="EXPLORE",
-        color = colorResource(id = R.color.grey),
+        color = MaterialTheme.colorScheme.onBackground,
         fontStyle = MaterialTheme.typography.headlineLarge.fontStyle,
         textAlign = TextAlign.Center,
         fontSize = 40.sp,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
             .wrapContentWidth(Alignment.CenterHorizontally)
     )
     Spacer(modifier = Modifier.height(30.dp))
@@ -304,19 +330,36 @@ fun Explore(
         modifier = Modifier.padding(horizontal = 16.dp)
 
     ) {
-        ExploreCard(data = dataList[0])
-        ExploreCard(data = dataList[1])
-        ExploreCard(data = dataList[2])
-        ExploreCard(data = dataList[3])
-        ExploreCard(data = dataList[4])
+        ExploreCard(
+            onCardClick = onCardClick,
+            data = dataList[0]
+        )
+        ExploreCard(
+            onCardClick = onCardClick,
+            data = dataList[1]
+        )
+        ExploreCard(
+            onCardClick = onCardClick,
+            data = dataList[2]
+        )
+        ExploreCard(
+            onCardClick = onCardClick,
+            data = dataList[3]
+        )
+        ExploreCard(
+            onCardClick = onCardClick,
+            data = dataList[4]
+        )
     }
 }
 
 @Composable
 fun ExploreCard(
+    onCardClick: (String) -> Unit,
+    data: ExploreData,
     modifier: Modifier = Modifier,
-    data: ExploreData
 ) {
+    var showBottomSheet by remember { mutableStateOf(false) }
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -328,44 +371,65 @@ fun ExploreCard(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(data.image)
-                    .build(),
-                contentDescription = "icon",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth()
-                    .height(225.dp)
-            )
-            Text(
-                text = data.title.uppercase(),
-                color = Color.White,
-                fontStyle = MaterialTheme.typography.headlineLarge.fontStyle,
-                fontSize = 25.sp,
-                letterSpacing = (2.sp),
-                modifier = Modifier.padding(16.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(data.image)
+                        .build(),
+                    contentDescription = "icon",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(225.dp)
+                        .clickable {
+                            onCardClick(data.title)
+                        }
+                )
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Bookmark,
+                        contentDescription = "BookMarked", // Important for accessibility
+                        tint = Color.Red
+                    )
+                }
+            }
+            Row() {
+                Text(
+                    text = data.title.uppercase(),
+                    color = Color.White,
+                    fontStyle = MaterialTheme.typography.headlineLarge.fontStyle,
+                    fontSize = 25.sp,
+                    letterSpacing = (2.sp),
+                    modifier = Modifier.padding(16.dp)
+                )
+                Spacer(Modifier.weight(1f))
+                IconButton(
+                    onClick = {
+                        showBottomSheet = true
+                    },
+                    modifier = Modifier.padding(vertical = 5.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "More Options", // Important for accessibility
+                        tint = Color.White
+                    )
+                }
+//                PlaylistBottomSheet(
+//                    currentVideo = data,
+//                    changeState = { showBottomSheet = it },
+//                    showBottomSheet = showBottomSheet
+//                )
+            }
         }
     }
 }
 
-//@Composable
-//fun ExploreCard(
-//    modifier: Modifier = Modifier.background(Color(0x131313FF)),
-//    data: ExploreData
-//) {
-//    Column(
-//        modifier = modifier.fillMaxWidth()
-//    ) {
-//        Image(
-//            painter = painterResource(id = data.image),
-//            contentDescription = null, // Add content description if needed
-//            modifier = Modifier.fillMaxWidth(),
-//        )
-//        Text(
-//            text = data.title,
-//            color = Color.White,
-//            fontStyle = MaterialTheme.typography.headlineLarge.fontStyle,
-//            fontSize = 30.sp,
-//        )
-//    }

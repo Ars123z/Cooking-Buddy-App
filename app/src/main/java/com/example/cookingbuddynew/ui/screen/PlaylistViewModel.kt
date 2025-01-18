@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.cookingbuddynew.CookingBuddyApplication
 import com.example.cookingbuddynew.api.CreatePlaylistRequest
 import com.example.cookingbuddynew.api.Playlist
+import com.example.cookingbuddynew.api.UpdatePlaylistRequest
 import com.example.cookingbuddynew.data.PlaylistRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -16,12 +17,12 @@ import kotlinx.coroutines.flow.flowOn
 
 class PlaylistViewModel(val playlistRepository: PlaylistRepository): ViewModel() {
 
-    fun fetchPlaylist(id: String): Flow<List<Playlist>> = flow {
+    fun fetchPlaylist(): Flow<List<Playlist>> = flow {
         val playlist = playlistRepository.fetchPlaylist() // Network call
         emit(playlist)
     }.flowOn(Dispatchers.IO) // Ensure this runs on the IO dispatcher
 
-    fun getPlaylist(token: String, id: Int): Flow<Any> = flow {
+    fun getPlaylist(id: Int): Flow<Any> = flow {
         val playlist = playlistRepository.getPlaylist(id) // Network call
         emit(playlist)
     }.flowOn(Dispatchers.IO)
@@ -34,8 +35,8 @@ class PlaylistViewModel(val playlistRepository: PlaylistRepository): ViewModel()
         return playlistRepository.deletePlaylist(id) // Network call
     }
 
-    suspend fun updatePlaylist(token: String, id: Int): Unit {
-        return playlistRepository.updatePlaylist(id) // Network call
+    suspend fun updatePlaylist(id: Int, request: UpdatePlaylistRequest): Playlist {
+        return playlistRepository.updatePlaylist(id, request) // Network call
     }
 
     companion object {

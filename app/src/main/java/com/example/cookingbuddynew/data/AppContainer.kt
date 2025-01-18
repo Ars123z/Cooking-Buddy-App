@@ -29,7 +29,7 @@ val loginFlow = AppSessionManager.loginFlow
 
 class DefaultAppContainer(context: Context) : AppContainer {
 //    private val BASE_URL = "https://cooking-buddy-backend-production.up.railway.app/"
-    private val BASE_URL = "http://192.168.1.15:8000"
+    private val BASE_URL = "http://192.168.1.5:8000"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(DataStoreManager(context), loginFlow)) // Add your custom interceptor here

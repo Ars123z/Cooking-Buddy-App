@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -28,6 +29,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,6 +59,8 @@ import androidx.credentials.GetPasswordOption
 import androidx.credentials.PasswordCredential
 import androidx.credentials.exceptions.CreateCredentialCancellationException
 import androidx.credentials.exceptions.CreateCredentialException
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cookingbuddynew.AuthViewModel
 import com.example.cookingbuddynew.MainActivity
@@ -112,9 +117,9 @@ fun SignInScreen(
                 context.startActivity(intent)
             }
             Toast.makeText(context, "Account created successfully", Toast.LENGTH_SHORT).show()
-        } catch (e: CreateCredentialCancellationException) {
-            e.printStackTrace()
-        } catch (e: CreateCredentialException) {
+        } catch (e: GetCredentialCancellationException) {
+            Toast.makeText(context, "Sign-in failed", Toast.LENGTH_SHORT).show()
+        } catch (e: GetCredentialException) {
             e.printStackTrace()
         }
     }
@@ -251,6 +256,10 @@ fun SignInScreen(
                         focusManager.clearFocus()
                         onSignIn()
                     },
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = Color.Black,
+                        containerColor = colorResource(id = R.color.gradient_start),
+                        ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Sign In")
@@ -260,6 +269,10 @@ fun SignInScreen(
                 SignInWithGoogleButton(dataStoreManager = DataStoreManager(LocalContext.current)) // Removed dataStoreManager
                 Button(
                     onClick = goToRegister,
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = Color.Black,
+                        containerColor = colorResource(id = R.color.gradient_start),
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Register")

@@ -37,7 +37,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -110,7 +112,14 @@ fun VideoScreen(
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = video?.title ?: "")
+        Text(
+            text = video?.title ?: "",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onBackground // Title color
+        )
         Spacer(modifier = Modifier.height(20.dp))
         RecipeDetail(
             videoId = video?.id ?: "",
@@ -166,7 +175,7 @@ fun RecipeDetail(
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (activeTab == "Method") colorResource(id = R.color.primary) else colorResource(id = R.color.background),
-                    contentColor = if (activeTab == "Method") Color.Black else Color.White,
+                    contentColor = if (activeTab == "Method") Color.Black else MaterialTheme.colorScheme.onBackground
                 ),
                 shape = RoundedCornerShape(10.dp)
             ) {

@@ -1,5 +1,6 @@
 package com.example.cookingbuddynew.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -99,6 +102,7 @@ fun SearchScreen(
             is SearchUiState.Error -> ErrorScreen(modifier = modifier.fillMaxWidth().padding(innerPadding))
         }
         LaunchedEffect(key1 = query) {
+            Log.d("SearchScreen", "LaunchedEffect triggered with query: $query")
             if (query != null && query != "") {
                 searchViewModel.getRecipes(query)
             }
@@ -157,21 +161,26 @@ fun ResultScreen(result: List<ResultItem>,
     }
 }
 
-
 @Composable
-fun RecipeCard(recipe: ResultItem,
-               updateHistory: (ResultItem) -> Unit,
-               modifier: Modifier = Modifier,
-               onCardClick: (Video) -> Unit = {}
+fun RecipeCard(
+    recipe: ResultItem,
+    updateHistory: (ResultItem) -> Unit,
+    modifier: Modifier = Modifier,
+    onCardClick: (Video) -> Unit = {}
 ) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val video = Video(
+        id = recipe.id.videoId,
+        title = recipe.snippet.title,
+        thumbnailUrl = recipe.snippet.thumbnails.high.url
+    )
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-
-        ) {
+            .padding(vertical = 8.dp), // Reduced padding
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // No elevation
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent), // Transparent background
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -183,28 +192,53 @@ fun RecipeCard(recipe: ResultItem,
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
                     .clickable {
-                        val video = Video(
-                            id = recipe.id.videoId,
-                            title = recipe.snippet.title,
-                            thumbnailUrl = recipe.snippet.thumbnails.high.url
-                        )
                         onCardClick(video)
                         updateHistory(recipe)
                     },
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = recipe.snippet.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Row {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp), // Added horizontal padding
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
                 Text(
-                    text = "Channel Name", // Replace with actual channel name if available
+                    text = recipe.snippet.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f), // Allow text to take up available space
+                    color = MaterialTheme.colorScheme.onBackground // Title color
+                )
+                IconButton(
+                    onClick = {
+                        showBottomSheet = true
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "More Options",
+                        tint = MaterialTheme.colorScheme.onBackground // Icon color
+                    )
+                }
+                PlaylistBottomSheet(
+                    currentVideo = video,
+                    changeState = { showBottomSheet = it },
+                    showBottomSheet = showBottomSheet
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp) // Added horizontal padding
+            ) {
+                Text(
+                    text = recipe.snippet.channelTitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     maxLines = 1,
@@ -218,13 +252,14 @@ fun RecipeCard(recipe: ResultItem,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "1M views - 1 year ago", // Replace with actual data if available
+                    text = "1M views - 1 year ago",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.cookingbuddynew.data
 
 import com.example.cookingbuddynew.api.CreatePlaylistRequest
 import com.example.cookingbuddynew.api.Playlist
+import com.example.cookingbuddynew.api.UpdatePlaylistRequest
 import com.example.cookingbuddynew.network.CookingBuddyApiService
 
 interface PlaylistRepository {
@@ -9,7 +10,7 @@ interface PlaylistRepository {
     suspend fun getPlaylist(id: Int): Playlist
     suspend fun createPlaylist(request: CreatePlaylistRequest): Playlist
     suspend fun deletePlaylist(id: Int): Unit
-    suspend fun updatePlaylist(id: Int): Unit
+    suspend fun updatePlaylist(id: Int, request: UpdatePlaylistRequest): Playlist
 }
 
 class PlaylistRepositoryImpl(private val playlistService: CookingBuddyApiService) : PlaylistRepository {
@@ -25,7 +26,7 @@ class PlaylistRepositoryImpl(private val playlistService: CookingBuddyApiService
     override suspend fun deletePlaylist(id: Int): Unit {
 //        return playlistService.deletePlaylist(id)
     }
-    override suspend fun updatePlaylist(id: Int): Unit {
-//        return playlistService.updatePlaylist(id)
+    override suspend fun updatePlaylist(id: Int, request: UpdatePlaylistRequest): Playlist {
+        return playlistService.updatePlaylist(id, request)
     }
 }

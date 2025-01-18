@@ -75,6 +75,7 @@ fun ProfileScreen(
     seeAllPlaylist: () -> Unit,
     goToSignIn: () -> Unit,
     onCardClick: (Video) -> Unit,
+    onPlaylistClick: (Int) -> Unit,
     profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
     modifier: Modifier = Modifier
 ) {
@@ -95,6 +96,7 @@ fun ProfileScreen(
             seeAllPlaylist,
             onCardClick = onCardClick,
             goToSignIn = goToSignIn,
+            onPlaylistClick = onPlaylistClick
         )
     }
 }
@@ -108,6 +110,7 @@ fun ProfilePage(
     profileViewModel: ProfileViewModel,
     seeAllHistory: () -> Unit,
     seeAllPlaylist: () -> Unit,
+    onPlaylistClick: (Int) -> Unit,
     onCardClick: (Video) -> Unit,
     goToSignIn: () -> Unit,
     modifier: Modifier = Modifier
@@ -211,6 +214,7 @@ fun ProfilePage(
                         }
                     }
                     PlaylistSlider(
+                        onPlaylistClick = onPlaylistClick,
                         playlist,
                         createNewPlaylist,
                         seeAllPlaylist
@@ -319,6 +323,7 @@ fun HistoryItemCard(history: History, onCardClick: (Video) -> Unit) {
 
 @Composable
 fun PlaylistSlider(
+    onPlaylistClick: (Int) -> Unit,
     playlist: List<Playlist>?,
     createNewPlaylist: (request: CreatePlaylistRequest) -> Unit,
     seeAllPlaylist: () -> Unit,
@@ -363,7 +368,10 @@ fun PlaylistSlider(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(playlist) { playlistItem ->
-                    PlaylistItemCard(playlistItem)
+                    PlaylistItemCard(
+                        onPlaylistClick = onPlaylistClick,
+                        playlistItem
+                    )
                 }
             }
         } else {
@@ -390,10 +398,14 @@ fun PlaylistSlider(
 
 
 @Composable
-fun PlaylistItemCard(playlist: Playlist) {
+fun PlaylistItemCard(
+    onPlaylistClick: (Int) -> Unit,
+    playlist: Playlist
+) {
     Card(
         modifier = Modifier
             .width(150.dp),
+        onClick = {onPlaylistClick(playlist.id)},
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {

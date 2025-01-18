@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -472,6 +474,10 @@ fun RegisterScreen(
                     focusManager.clearFocus()
                     onSignUp(RegisterRequest(email, password, firstName, lastName, password2))
                 },
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.Black,
+                    containerColor = colorResource(id = R.color.gradient_start),
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Register")
@@ -483,6 +489,10 @@ fun RegisterScreen(
             )
             Button(
                 onClick = goToSignIn,
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.Black,
+                    containerColor = colorResource(id = R.color.gradient_start),
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Sign In")

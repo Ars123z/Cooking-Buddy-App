@@ -27,3 +27,19 @@ data class Playlist(
 data class CreatePlaylistRequest(
     var name: String,
 )
+
+@Serializable
+sealed class UpdatePlaylistRequest {
+    @Serializable
+    data class AddVideoRequest(val name: String,
+                               val id: Int,
+                               val add_video_ids: Array<String>
+    ) : UpdatePlaylistRequest()
+
+    @Serializable
+    data class RemoveVideoRequest(
+        val name: String,
+        val id: Int,
+        val remove_video_ids: Array<String>
+    ) : UpdatePlaylistRequest()
+}

@@ -6,6 +6,7 @@ import com.example.cookingbuddynew.api.HistoryUpdateResponse
 import com.example.cookingbuddynew.network.CookingBuddyApiService
 import com.example.cookingbuddynew.api.ThumbnailItem
 import com.example.cookingbuddynew.api.Id
+import com.example.cookingbuddynew.api.LabelApi
 import com.example.cookingbuddynew.api.ResultItem
 import com.example.cookingbuddynew.api.Snippet
 import com.example.cookingbuddynew.api.Thumbnails
@@ -14,6 +15,7 @@ import com.example.cookingbuddynew.api.Thumbnails
 interface SearchRepository {
     suspend fun getRecipes(query: String): ApiResponse
     suspend fun updateHistory(request: HistoryUpdateRequest): HistoryUpdateResponse
+    suspend fun fetchLabels(region: String): List<LabelApi>
 }
 
 class SearchRepositoryImp(
@@ -25,12 +27,26 @@ class SearchRepositoryImp(
     override suspend fun updateHistory(request: HistoryUpdateRequest): HistoryUpdateResponse {
         return searchService.updateHistory(request)
     }
+    override suspend fun fetchLabels(region: String): List<LabelApi> {
+        return searchService.fetchLabels(region)
+    }
 }
 
 class MockRepository: SearchRepository {
     override suspend fun updateHistory(request: HistoryUpdateRequest): HistoryUpdateResponse {
         return HistoryUpdateResponse(
             message = "success"
+        )
+    }
+    override suspend fun fetchLabels(region: String): List<LabelApi> {
+        return listOf(
+            LabelApi(
+                id = 1,
+                name = "test",
+                videos = listOf(1, 2, 3),
+                region = "test",
+                last_updated = "test"
+            )
         )
     }
     override suspend fun getRecipes(query: String): ApiResponse {

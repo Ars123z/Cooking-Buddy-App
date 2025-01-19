@@ -43,5 +43,4 @@ interface CookingBuddyApiService {
     suspend fun updatePlaylist(@Path("id") id: Int, @Body updatePlaylistRequest: UpdatePlaylistRequest): Playlist
     @GET("api/v1/labels/")
     suspend fun fetchLabels(@Query("region") region: String): List<LabelApi>
-
 }

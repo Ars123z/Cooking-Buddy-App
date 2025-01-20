@@ -168,6 +168,13 @@ fun CookingBuddyApp(
                     onProfileClick = {
                         if (navigationAwareKey == 0) 1 else 0
                         navController.navigate(CookingBuddyScreen.Profile.route)
+                    },
+                    onCardClick = {video ->
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            key = "video",
+                            value = video
+                        )
+                        navController.navigate(CookingBuddyScreen.Video.route)
                     }
                 )
             }

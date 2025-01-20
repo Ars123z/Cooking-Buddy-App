@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.cookingbuddynew.CookingBuddyApplication
 import com.example.cookingbuddynew.api.LabelApi
+import com.example.cookingbuddynew.api.VideoDetails
 
 import com.example.cookingbuddynew.data.SearchRepository
 import kotlinx.coroutines.launch
@@ -19,28 +20,33 @@ import okio.IOException
 
 private const val TAG = "HomeViewModel"
 
-sealed interface HomeUiState {
-    data class Success(val recipes: List<LabelApi>): HomeUiState
-    object Error: HomeUiState
-    object Loading: HomeUiState
+sealed interface LabelUiState {
+    data class Success(val labels: List<LabelApi>): LabelUiState
+    object Error: LabelUiState
+    object Loading: LabelUiState
 }
 
 class HomeViewModel(val searchRepository: SearchRepository): ViewModel() {
 
-    var homeUiState: HomeUiState by mutableStateOf(HomeUiState.Loading)
+    var labelUiState: LabelUiState by mutableStateOf(LabelUiState.Loading)
         private set
 
     fun fetchLabel(region: String) {
         viewModelScope.launch {
             try {
                 val request = searchRepository.fetchLabels(region)
-                homeUiState = HomeUiState.Success(request)
+                Log.i(TAG, request.toString())
+                labelUiState = LabelUiState.Success(request)
                 Log.i(TAG, "Success")
             } catch (e: IOException) {
                 Log.e(TAG, "Failure: ${e.message}")
-                homeUiState = HomeUiState.Error
+                labelUiState = LabelUiState.Error
             }
         }
+    }
+
+    suspend fun videoDetails(videoId: Int): VideoDetails {
+        return searchRepository.videoDetails(videoId)
     }
 
     companion object {
@@ -48,7 +54,7 @@ class HomeViewModel(val searchRepository: SearchRepository): ViewModel() {
             initializer {
                 val application = (this[APPLICATION_KEY] as CookingBuddyApplication)
                 val searchRepository = application.container.searchRepository
-                SearchViewModel(searchRepository = searchRepository)
+                HomeViewModel(searchRepository = searchRepository)
             }
         }
     }

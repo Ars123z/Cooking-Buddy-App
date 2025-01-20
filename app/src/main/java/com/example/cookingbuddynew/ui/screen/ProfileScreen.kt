@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -83,21 +84,41 @@ fun ProfileScreen(
     val dataStoreManager = DataStoreManager(dataStoreContext)
     val userDetails by dataStoreManager.getFromDataStore().collectAsState(initial = null)
 
-    if (userDetails == null) {
-        CircularProgressIndicator()
-    } else {
-        ProfilePage(
-            userDetails!!.access_token,
-            userDetails!!.picture,
-            userDetails!!.full_name,
-            dataStoreManager,
-            profileViewModel,
-            seeAllHistory,
-            seeAllPlaylist,
-            onCardClick = onCardClick,
-            goToSignIn = goToSignIn,
-            onPlaylistClick = onPlaylistClick
-        )
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+    ) {
+        if (userDetails == null) {
+            CircularProgressIndicator()
+        } else {
+            ProfilePage(
+                userDetails!!.access_token,
+                userDetails!!.picture,
+                userDetails!!.full_name,
+                dataStoreManager,
+                profileViewModel,
+                seeAllHistory,
+                seeAllPlaylist,
+                onCardClick = onCardClick,
+                goToSignIn = goToSignIn,
+                onPlaylistClick = onPlaylistClick
+            )
+            Button(
+                onClick = {}
+            ) {
+                Text("Change Language")
+            }
+            Button(
+                onClick = {}
+            ) {
+                Text("Change Theme")
+            }
+            Button(
+                onClick = {}
+            ) {
+                Text("Subscription Status")
+            }
+        }
     }
 }
 
@@ -220,6 +241,21 @@ fun ProfilePage(
                         seeAllPlaylist
                     )
                 }
+            }
+            Button(
+                onClick = {}
+            ) {
+                Text("Change Language")
+            }
+            Button(
+                onClick = {}
+            ) {
+                Text("Change Theme")
+            }
+            Button(
+                onClick = {}
+            ) {
+                Text("Subscription Status")
             }
         }
     }

@@ -57,3 +57,14 @@ data class Video(
     val thumbnailUrl: String
 ): Parcelable
 
+@Serializable
+data class VideoDetails(
+    val id: Int,
+    val video_id: String,
+    val title: String,
+    val description: String,
+    val thumbnail: String,
+    val channel_name: String,
+    val method: List<String>,
+    val ingredient_list: List<List<String>>,
+)

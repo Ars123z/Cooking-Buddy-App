@@ -10,12 +10,14 @@ import com.example.cookingbuddynew.api.LabelApi
 import com.example.cookingbuddynew.api.ResultItem
 import com.example.cookingbuddynew.api.Snippet
 import com.example.cookingbuddynew.api.Thumbnails
+import com.example.cookingbuddynew.api.VideoDetails
 
 
 interface SearchRepository {
     suspend fun getRecipes(query: String): ApiResponse
     suspend fun updateHistory(request: HistoryUpdateRequest): HistoryUpdateResponse
     suspend fun fetchLabels(region: String): List<LabelApi>
+    suspend fun videoDetails(videoId: Int): VideoDetails
 }
 
 class SearchRepositoryImp(
@@ -30,9 +32,24 @@ class SearchRepositoryImp(
     override suspend fun fetchLabels(region: String): List<LabelApi> {
         return searchService.fetchLabels(region)
     }
+    override suspend fun videoDetails(videoId: Int): VideoDetails {
+        return searchService.videoDetails(videoId)
+    }
 }
 
 class MockRepository: SearchRepository {
+    override suspend fun videoDetails(videoId: Int): VideoDetails {
+        return VideoDetails(
+            id = 1,
+            video_id = "",
+            title = "",
+            description = "",
+            thumbnail = "",
+            channel_name = "",
+            method = listOf(),
+            ingredient_list = listOf()
+        )
+    }
     override suspend fun updateHistory(request: HistoryUpdateRequest): HistoryUpdateResponse {
         return HistoryUpdateResponse(
             message = "success"

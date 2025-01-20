@@ -14,6 +14,7 @@ import com.example.cookingbuddynew.api.ResultItem
 import com.example.cookingbuddynew.api.UpdatePlaylistRequest
 import com.example.cookingbuddynew.api.UserDetails
 import com.example.cookingbuddynew.api.Video
+import com.example.cookingbuddynew.api.VideoDetails
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -43,4 +44,6 @@ interface CookingBuddyApiService {
     suspend fun updatePlaylist(@Path("id") id: Int, @Body updatePlaylistRequest: UpdatePlaylistRequest): Playlist
     @GET("api/v1/labels/")
     suspend fun fetchLabels(@Query("region") region: String): List<LabelApi>
+    @GET("api/v1/video/{id}/")
+    suspend fun videoDetails(@Path("id") id: Int): VideoDetails
 }

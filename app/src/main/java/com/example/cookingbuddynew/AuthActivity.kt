@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -105,6 +106,7 @@ const val FORGET_PASSWORD_ROUTE = "reset_password"
 const val REGISTER_OTP_ROUTE = "register_otp"
 const val FORGET_PASSWORD_OTP_ROUTE = "forget_password_otp"
 
+@ExperimentalMaterial3Api
 class AuthActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

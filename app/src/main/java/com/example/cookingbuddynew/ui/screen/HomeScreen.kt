@@ -57,8 +57,7 @@ import com.example.cookingbuddynew.ui.theme.LogoType
 
 @Composable
 fun HomeScreen(
-    onSearch: (String) -> Unit,
-    onProfileClick: () -> Unit,
+    onSearch: () -> Unit,
     onCardClick: (Video) -> Unit,
     homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
     modifier: Modifier = Modifier,
@@ -121,7 +120,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun Header(onClick: (String) -> Unit = {}) {
+fun Header(onClick: () -> Unit = {}) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)
@@ -138,7 +137,7 @@ fun Header(onClick: (String) -> Unit = {}) {
         )
         Spacer(modifier = Modifier.weight(1f))
         IconButton(
-            onClick = {onClick("Search")}
+            onClick = {onClick()}
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_search_24),
@@ -155,6 +154,7 @@ fun Header(onClick: (String) -> Unit = {}) {
     homeViewModel: HomeViewModel,
     onLabelClick: (List<Int>) -> Unit,
 ) {
+    var selectedLabel by remember { mutableStateOf("") }
     var labelUiState = homeViewModel.labelUiState
     LaunchedEffect(Unit) {
         homeViewModel.fetchLabel("us")
@@ -166,6 +166,7 @@ fun Header(onClick: (String) -> Unit = {}) {
         is LabelUiState.Success -> {
             LaunchedEffect(Unit) {
                 onLabelClick(labelUiState.labels[0].videos)
+                selectedLabel = labelUiState.labels[0].name
             }
             LazyRow(
                 verticalAlignment = Alignment.CenterVertically,
@@ -175,9 +176,23 @@ fun Header(onClick: (String) -> Unit = {}) {
                     labelUiState.labels
                 ) { item ->
                     Button(
-                        onClick = { onLabelClick(item.videos) },
+                        onClick = {
+                            onLabelClick(item.videos)
+                            selectedLabel = item.name },
                         shape = RoundedCornerShape(4.dp),
                         contentPadding = PaddingValues(horizontal = 4.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedLabel == item.name) {
+                                Color.White
+                            } else {
+                                Color.DarkGray
+                            },
+                            contentColor = if (selectedLabel == item.name) {
+                                Color.Black
+                            } else {
+                                Color.White
+                            }
+                        )
                     ) {
                         Text(
                             text = item.name,

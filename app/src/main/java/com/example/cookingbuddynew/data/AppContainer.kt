@@ -23,6 +23,7 @@ interface AppContainer {
     val searchRepository: SearchRepository
     val videoRepository: VideoRepository
     val profileRepository: ProfileRepository
+    val settingsRepository: SettingsRepository
 }
 
 val loginFlow = AppSessionManager.loginFlow
@@ -49,6 +50,9 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     override val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(authRetrofitService)
+    }
+    override val settingsRepository: SettingsRepository by lazy {
+        SettingsRepositoryImp(authRetrofitService)
     }
 
 //    ========================================

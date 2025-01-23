@@ -21,6 +21,7 @@ class AuthInterceptor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
+        Log.i(TAG, "${originalRequest.body}")
         Log.i(TAG, "Request URL: ${originalRequest.url}")
 
         // Assume credentials are never empty and only need to handle staleness

@@ -63,7 +63,6 @@ fun SearchScreen(
     onSearch: (String) -> Unit,
     onCardClick: (Video) -> Unit,
     navigateUp: () -> Unit,
-    query: String?,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     searchViewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory)
 ) {
@@ -100,12 +99,6 @@ fun SearchScreen(
                 }
             )
             is SearchUiState.Error -> ErrorScreen(modifier = modifier.fillMaxWidth().padding(innerPadding))
-        }
-        LaunchedEffect(key1 = query) {
-            Log.d("SearchScreen", "LaunchedEffect triggered with query: $query")
-            if (query != null && query != "") {
-                searchViewModel.getRecipes(query)
-            }
         }
     }
 }
@@ -278,7 +271,9 @@ fun SearchField(onSearch: (String) -> Unit) {
         ),
         keyboardActions = KeyboardActions(
             onSearch = {
-                onSearch(text)
+                if (text != "") {
+                    onSearch(text)
+                }
             }
         ),
         placeholder = {

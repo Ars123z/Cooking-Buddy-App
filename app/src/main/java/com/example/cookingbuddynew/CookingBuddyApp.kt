@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PersonalVideo
 import androidx.compose.material.icons.filled.PlaylistAddCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.twotone.AccountCircle
 import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.Home
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.twotone.PlaylistAddCircle
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -69,6 +71,7 @@ import com.example.cookingbuddynew.ui.screen.PlaylistItemScreen
 import com.example.cookingbuddynew.ui.screen.PlaylistsScreen
 import com.example.cookingbuddynew.ui.screen.ProfileScreen
 import com.example.cookingbuddynew.ui.screen.SearchScreen
+import com.example.cookingbuddynew.ui.screen.SettingsScreen
 import com.example.cookingbuddynew.ui.screen.VideoScreen
 
 
@@ -76,7 +79,6 @@ enum class CookingBuddyScreen(
     @StringRes val title: Int,
     val route: String,
     @DrawableRes val icon: Int,
-    val arguments: List<NamedNavArgument> = emptyList(),
 ) {
     Home(
         title = R.string.home,
@@ -91,9 +93,6 @@ enum class CookingBuddyScreen(
     Search(
         title = R.string.search,
         route = "search",
-        arguments = listOf(navArgument("query") {
-            type = NavType.StringType
-        }),
         icon = R.drawable.home
     ),
     Profile(
@@ -110,6 +109,11 @@ enum class CookingBuddyScreen(
         title = R.string.video,
         route = "video",
         icon = R.drawable.home,
+    ),
+    Settings(
+        title = R.string.settings,
+        route = "settings",
+        icon = R.drawable.settings_svgrepo_com,
     );
 
     companion object {
@@ -121,6 +125,7 @@ enum class CookingBuddyScreen(
                 Profile.route -> Profile
                 Playlist.route -> Playlist
                 Video.route -> Video
+                Settings.route -> Settings
                 null -> Home
                 else -> throw IllegalArgumentException("Route $route is not recognized.")
             }
@@ -135,6 +140,7 @@ enum class CookingBuddyScreen(
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun CookingBuddyApp(
     navController: NavHostController = rememberNavController()
@@ -162,12 +168,8 @@ fun CookingBuddyApp(
 //        Home Screen
             composable(route = CookingBuddyScreen.Home.route) {
                 HomeScreen(
-                    onSearch = { it ->
-                        navController.navigate(CookingBuddyScreen.Search.createRoute(it))
-                    },
-                    onProfileClick = {
-                        if (navigationAwareKey == 0) 1 else 0
-                        navController.navigate(CookingBuddyScreen.Profile.route)
+                    onSearch = {
+                        navController.navigate(CookingBuddyScreen.Search.route)
                     },
                     onCardClick = {video ->
                         navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -193,14 +195,11 @@ fun CookingBuddyApp(
             }
 //        Search Screen
             composable(
-                route = CookingBuddyScreen.Search.route + "/{query}",
-                arguments = CookingBuddyScreen.Search.arguments
+                route = CookingBuddyScreen.Search.route,
             ) {
                 val searchViewModel: SearchViewModel =
                     viewModel(factory = SearchViewModel.Factory)
-                val query = it.arguments?.getString("query")
                 SearchScreen(
-                    query = query,
                     navigateUp = {
                         navController.navigateUp()
                     },
@@ -232,6 +231,12 @@ fun CookingBuddyApp(
                     },
                     onPlaylistClick = { playlistId ->
                         navController.navigate(CookingBuddyScreen.Playlist.createRoute(playlistId.toString()))
+                    },
+                    goToSearch = {
+                        navController.navigate(CookingBuddyScreen.Search.route)
+                    },
+                    goToSettings = {
+                        navController.navigate(CookingBuddyScreen.Settings.route)
                     },
                     onCardClick = { video ->
                         navController.currentBackStackEntry?.savedStateHandle?.set(
@@ -270,6 +275,14 @@ fun CookingBuddyApp(
                 VideoScreen(
                     video = video,
                     lifecycleOwner = localLifecycleOwner
+                )
+            }
+//           Settings Screen
+            composable(route = CookingBuddyScreen.Settings.route) {
+                SettingsScreen(
+                    goBack = {
+                        navController.navigateUp()
+                    }
                 )
             }
         }

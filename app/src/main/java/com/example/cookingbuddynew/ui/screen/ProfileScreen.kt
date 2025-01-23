@@ -26,6 +26,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -75,6 +77,8 @@ fun ProfileScreen(
     seeAllHistory: () -> Unit,
     seeAllPlaylist: () -> Unit,
     goToSignIn: () -> Unit,
+    goToSearch: () -> Unit,
+    goToSettings: () -> Unit,
     onCardClick: (Video) -> Unit,
     onPlaylistClick: (Int) -> Unit,
     profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
@@ -86,7 +90,6 @@ fun ProfileScreen(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
     ) {
         if (userDetails == null) {
             CircularProgressIndicator()
@@ -101,23 +104,10 @@ fun ProfileScreen(
                 seeAllPlaylist,
                 onCardClick = onCardClick,
                 goToSignIn = goToSignIn,
+                goToSearch = goToSearch,
+                goToSettings = goToSettings,
                 onPlaylistClick = onPlaylistClick
             )
-            Button(
-                onClick = {}
-            ) {
-                Text("Change Language")
-            }
-            Button(
-                onClick = {}
-            ) {
-                Text("Change Theme")
-            }
-            Button(
-                onClick = {}
-            ) {
-                Text("Subscription Status")
-            }
         }
     }
 }
@@ -134,6 +124,8 @@ fun ProfilePage(
     onPlaylistClick: (Int) -> Unit,
     onCardClick: (Video) -> Unit,
     goToSignIn: () -> Unit,
+    goToSearch: () -> Unit,
+    goToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val name = name ?: "Loading..."
@@ -161,17 +153,30 @@ fun ProfilePage(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(contentPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End // Align content to the end (right)
             ) {
-                LogOut(
-                    profileViewModel,
-                    dataStoreManager,
-                    goToSignIn
-                )
+                IconButton(
+                    onClick = goToSearch
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = "Search"
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        goToSettings()
+                    }
+                ) {
+                   Icon(
+                       imageVector = Icons.Filled.Settings,
+                       contentDescription = "Settings"
+                   )
+                }
             }
             Spacer(modifier = Modifier.height(16.dp)) // Add some space between rows
             Row(
@@ -242,21 +247,12 @@ fun ProfilePage(
                     )
                 }
             }
-            Button(
-                onClick = {}
-            ) {
-                Text("Change Language")
-            }
-            Button(
-                onClick = {}
-            ) {
-                Text("Change Theme")
-            }
-            Button(
-                onClick = {}
-            ) {
-                Text("Subscription Status")
-            }
+            Spacer(modifier = Modifier.height(16.dp))
+            LogOut(
+                profileViewModel,
+                dataStoreManager,
+                goToSignIn
+            )
         }
     }
 }
@@ -554,7 +550,8 @@ fun LogOut(
         }
     }
     Button(
-        onClick = onClick
+        onClick = onClick,
+        shape = RoundedCornerShape(5.dp)
     ) {
         Text(text = "Log Out")
     }

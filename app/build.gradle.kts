@@ -44,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.mlkit:translate:17.0.3")
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.coil.svg)
     implementation(libs.androidx.core.splashscreen)

@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,10 +50,35 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cookingbuddynew.api.Video
 import com.example.cookingbuddynew.R
+import com.example.cookingbuddynew.utils.DataStoreManager
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+//Translation imports
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translator
+import com.google.mlkit.nl.translate.TranslatorOptions
+import com.google.mlkit.nl.translate.Translation
+
+
+
+val options = TranslatorOptions.Builder()
+    .setSourceLanguage(TranslateLanguage.ENGLISH)
+    .setTargetLanguage(TranslateLanguage.HINDI)
+    .build()
+
+val translator: Translator = Translation.getClient(options)
+
+fun translateText(text: String, onTranslationResult: (String) -> Unit) {
+    translator.translate(text)
+        .addOnSuccessListener { translatedText ->
+            onTranslationResult(translatedText)
+        }
+        .addOnFailureListener { exception ->
+            // Handle the error
+        }
+}
 
 @Composable
 fun VideoScreen(
@@ -213,6 +239,7 @@ fun RecipeDetail(
 @Composable
 fun MethodScreen(
     method: List<String>,
+    dataStore: DataStoreManager = DataStoreManager(LocalContext.current),
     modifier: Modifier = Modifier
 ) {
     Text(
@@ -268,6 +295,7 @@ fun MethodScreen(
 @Composable
 fun IngredientScreen(
     ingredients: List<List<String>>,
+    dataStore: DataStoreManager = DataStoreManager(LocalContext.current),
     modifier: Modifier = Modifier
 ) {
     Text(

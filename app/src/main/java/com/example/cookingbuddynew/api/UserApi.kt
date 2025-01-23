@@ -9,6 +9,10 @@ data class UserDetails(
     val picture: String,
     var access_token: String,
     var refresh_token: String,
+    var subscription: Boolean,
+    var subscription_validity_date: String,
+    var language: String,
+    var region: String,
     var access_token_expiry: Long = 0L,
     var refresh_token_expiry: Long = 0L
 )
@@ -61,5 +65,6 @@ data class LoginResponse(
     val email: String,
     val full_name: String,
     val access_token: String,
-    val refresh_token: String
+    val refresh_token: String,
+    val profile: Profile
 )

@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -70,6 +71,7 @@ import com.example.cookingbuddynew.api.UserDetails
 import com.example.cookingbuddynew.utils.DataStoreManager
 import kotlinx.coroutines.launch
 
+@ExperimentalMaterial3Api
 @Composable
 fun SignInScreen(
     goToRegister: () -> Unit,
@@ -98,10 +100,18 @@ fun SignInScreen(
                 Log.d("user", user.refresh_token)
                 Log.d("user", user.email)
                 Log.d("user", user.full_name)
+                Log.d("user", user.profile.subscription.toString())
+                Log.d("user", user.profile.subscription_validity_date.toString())
+                Log.d("user", user.profile.language)
+                Log.d("user", user.profile.region)
                 val userDetails = UserDetails(
                     email = user.email,
                     full_name = user.full_name,
                     picture = "",
+                    subscription = user.profile.subscription,
+                    subscription_validity_date = user.profile.subscription_validity_date ?: "",
+                    language = user.profile.language,
+                    region = user.profile.region,
                     access_token = user.access_token,
                     refresh_token = user.refresh_token,
                     access_token_expiry = System.currentTimeMillis() + 24 * 60 * 60 * 1000,

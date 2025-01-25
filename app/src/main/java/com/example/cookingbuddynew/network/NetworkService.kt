@@ -11,6 +11,8 @@ import com.example.cookingbuddynew.api.LabelApi
 import com.example.cookingbuddynew.api.Playlist
 import com.example.cookingbuddynew.api.RecipeDetail
 import com.example.cookingbuddynew.api.ResultItem
+import com.example.cookingbuddynew.api.TranslateRequest
+import com.example.cookingbuddynew.api.TranslateResponse
 import com.example.cookingbuddynew.api.UpdatePlaylistRequest
 import com.example.cookingbuddynew.api.UserDetails
 import com.example.cookingbuddynew.api.Video
@@ -28,6 +30,8 @@ interface CookingBuddyApiService {
     suspend fun getRecipes(@Query("q") query: String): ApiResponse
     @GET("api/v1/video/ingredient-method/{id}/")
     suspend fun getRecipeDetails(@Path("id") id: String): RecipeDetail
+    @POST("api/v1/video/ingredient-method/translate/")
+    suspend fun translate(@Body request: TranslateRequest): RecipeDetail
     @GET("api/v1/history/")
     suspend fun fetchHistory(): List<History>
     @POST("api/v1/update-watch-history/")

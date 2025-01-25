@@ -12,6 +12,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.cookingbuddynew.CookingBuddyApplication
 import com.example.cookingbuddynew.api.RecipeDetail
+import com.example.cookingbuddynew.api.TranslateRequest
+import com.example.cookingbuddynew.api.TranslateResponse
 import com.example.cookingbuddynew.data.VideoRepository
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -39,15 +41,37 @@ class VideoViewModel(private val videoRepository: VideoRepository): ViewModel() 
                 Log.i(TAG, "Success")
                 Log.d(TAG, "Success: $result")
                 VideoUiState.Success(result)
-            } catch(e: IOException) {
+            } catch (e: IOException) {
+                Log.e(TAG, "Failure: ${e.message}")
+                VideoUiState.Error
+            } catch (e: HttpException) {
+                Log.e(TAG, "Failure: ${e.message}")
+                VideoUiState.Error
+            } catch (e: RuntimeException) {
                 Log.e(TAG, "Failure: ${e.message}")
                 VideoUiState.Error
             }
-            catch(e: HttpException) {
-                Log.e(TAG, "Failure: ${e.message}")
-                VideoUiState.Error
-            }
+        }
+    }
 
+    fun translate(request: TranslateRequest) {
+        viewModelScope.launch {
+            videoUiState = VideoUiState.Loading
+            videoUiState = try {
+                val response = videoRepository.translate(request)
+                Log.i(TAG, "Success")
+                Log.d(TAG, "Success: $response")
+                VideoUiState.Success(response)
+            } catch (e: IOException) {
+                Log.e(TAG, "Failure: ${e.message}")
+                VideoUiState.Error
+            } catch (e: HttpException) {
+                Log.e(TAG, "Failure: ${e.message}")
+                VideoUiState.Error
+            } catch (e: RuntimeException) {
+                Log.e(TAG, "Failure: ${e.message}")
+                VideoUiState.Error
+            }
         }
     }
 

@@ -44,6 +44,8 @@ android {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") // Update to the latest version
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1") // For Android support
     implementation("com.google.mlkit:translate:17.0.3")
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.coil.svg)

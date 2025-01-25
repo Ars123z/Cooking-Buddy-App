@@ -1,5 +1,6 @@
 package com.example.cookingbuddynew.ui.screen
 
+//Translation imports
 import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.background
@@ -25,10 +26,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,37 +51,16 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.cookingbuddynew.api.Video
 import com.example.cookingbuddynew.R
+import com.example.cookingbuddynew.api.TranslateRequest
+import com.example.cookingbuddynew.api.Video
 import com.example.cookingbuddynew.utils.DataStoreManager
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
-//Translation imports
-import com.google.mlkit.nl.translate.TranslateLanguage
-import com.google.mlkit.nl.translate.Translator
-import com.google.mlkit.nl.translate.TranslatorOptions
-import com.google.mlkit.nl.translate.Translation
+import kotlinx.coroutines.launch
 
-
-
-val options = TranslatorOptions.Builder()
-    .setSourceLanguage(TranslateLanguage.ENGLISH)
-    .setTargetLanguage(TranslateLanguage.HINDI)
-    .build()
-
-val translator: Translator = Translation.getClient(options)
-
-fun translateText(text: String, onTranslationResult: (String) -> Unit) {
-    translator.translate(text)
-        .addOnSuccessListener { translatedText ->
-            onTranslationResult(translatedText)
-        }
-        .addOnFailureListener { exception ->
-            // Handle the error
-        }
-}
 
 @Composable
 fun VideoScreen(
@@ -158,11 +140,15 @@ fun RecipeDetail(
     modifier: Modifier = Modifier
         .background(color = Color.Black)
         .clip(RoundedCornerShape(16.dp)),
-    videoId:String,
+    videoId: String,
+    dataStore: DataStoreManager = DataStoreManager(LocalContext.current),
     videoViewModel: VideoViewModel = viewModel(factory = VideoViewModel.Factory)
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val userProfile by dataStore.getFromDataStore().collectAsState(initial = null)
     val videoUiState = videoViewModel.videoUiState
     var activeTab by remember { mutableStateOf("Ingredient") }
+    val language = userProfile?.language ?: "english"
 
     LaunchedEffect(key1 = videoId) {
         videoViewModel.getRecipeDetails(videoId)
@@ -185,7 +171,9 @@ fun RecipeDetail(
                     activeTab = "Ingredient"
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (activeTab == "Ingredient") colorResource(id = R.color.primary) else colorResource(id = R.color.background),
+                    containerColor = if (activeTab == "Ingredient") colorResource(id = R.color.primary) else colorResource(
+                        id = R.color.background
+                    ),
                     contentColor = if (activeTab == "Ingredient") Color.Black else Color.White
                 ),
                 shape = RoundedCornerShape(10.dp)
@@ -200,7 +188,9 @@ fun RecipeDetail(
                     activeTab = "Method"
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (activeTab == "Method") colorResource(id = R.color.primary) else colorResource(id = R.color.background),
+                    containerColor = if (activeTab == "Method") colorResource(id = R.color.primary) else colorResource(
+                        id = R.color.background
+                    ),
                     contentColor = if (activeTab == "Method") Color.Black else MaterialTheme.colorScheme.onBackground
                 ),
                 shape = RoundedCornerShape(10.dp)
@@ -208,6 +198,30 @@ fun RecipeDetail(
                 Text(
                     text = "Steps",
                     fontStyle = MaterialTheme.typography.labelLarge.fontStyle,
+                )
+            }
+            Button(
+                onClick = {
+                    val request = TranslateRequest(
+                        id = videoId,
+                        lang = language
+                    )
+                    Log.d("RecipeDetail", "Translate: $language")
+                    coroutineScope.launch {
+                        videoViewModel.translate(request)
+                    }
+                },
+                enabled = userProfile != null,
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = Color.Black,
+                    containerColor = Color.White,
+                    disabledContainerColor = Color.White.copy(alpha = 0.5f),
+                    disabledContentColor = Color.Black
+                ),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(
+                    text="Translate",
                 )
             }
         }
@@ -239,55 +253,57 @@ fun RecipeDetail(
 @Composable
 fun MethodScreen(
     method: List<String>,
-    dataStore: DataStoreManager = DataStoreManager(LocalContext.current),
     modifier: Modifier = Modifier
 ) {
-    Text(
-        text = "METHOD",
-        fontStyle = MaterialTheme.typography.headlineLarge.fontStyle,
-        color = Color.White
-    )
-    LazyColumn(modifier = modifier.padding(16.dp)) {
-        itemsIndexed(method) { index, step ->
-            Row(
-                modifier = modifier,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(colorResource(id = R.color.primary)),
-                    contentAlignment = Alignment.Center
+    Column {
+        Text(
+            text = "METHOD",
+            style = MaterialTheme.typography.headlineLarge,
+            color = Color.White
+        )
+
+        LazyColumn(modifier = modifier.padding(16.dp)) {
+            itemsIndexed(method) { index, step ->
+                Row(
+                    modifier = modifier,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(colorResource(id = R.color.primary)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = (index + 1).toString(),
+                            color = Color.Black,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                     Text(
-                        text = (index + 1).toString(),
-                        color = Color.Black,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
+                        text = step,
+                        color = Color.White
                     )
                 }
-                Text(
-                    text = step,
-                    color = Color.White
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(5.dp)
+                )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(colorResource(R.color.background))
+                )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(5.dp)
                 )
             }
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp)
-            )
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(colorResource(R.color.background))
-            )
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp)
-            )
         }
     }
 }
@@ -313,7 +329,7 @@ fun IngredientScreen(
                 Text(
                     text = ingredient[0],
                     color = Color.White,
-                    )
+                )
                 Text(
                     text = ingredient[1],
                     color = Color.White
